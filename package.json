@@ -1,0 +1,21 @@
+{
+  "name": "libreoffice-download",
+  "version": "1.0.0",
+  "description": "The code will download the specific verison of libreoffice and open that file\"",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js -v 6.3.2 -f 'C:/Users/ramch/Downloads/issue_document.docx'"
+  },
+  "author": "ram",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.2",
+    "cheerio": "^1.0.0-rc.12",
+    "clipboardy": "^4.0.0",
+    "commander": "^12.1.0",
+    "dotenv": "^16.4.5",
+    "open": "^10.1.0",
+    "progress": "^2.0.3"
+  }
+}
