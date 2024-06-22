@@ -16,6 +16,7 @@ I have tested this with windows only and need to confirm this with Mac and Linux
 - XDM_PATH              // path of fast download manager executable.
 - XDM_DOWNLOAD_PATH     // place where the download manager downlands the file.    
 - SOFFICE_VERSIONS_PATH // place to download multiple versions of LibreOffice.
+- FILE_PATH             // File to be opened. You can set this if you do not want to provide file path for each new version.
 
 ## Prerequisites  
 

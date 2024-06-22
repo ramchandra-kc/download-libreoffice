@@ -10,12 +10,19 @@ const program = new Command();
 
 program
     .requiredOption('-v, --version <version>', 'Version of LibreOffice Portable to download')
-    .requiredOption('-f, --filepath <filepath>', 'Path to the file to open with LibreOffice');
+    .option('-f, --filepath <filepath>', 'Path to the file to open with LibreOffice');
 
 program.parse(process.argv);
 
-const { version, filepath } = program.opts();
+let { version, filepath } = program.opts();
 
+if (!global.versionsFolder) {
+    global.versionsFolder = process.env.SOFFICE_VERSIONS_PATH || __dirname;
+}
+
+if (!filepath) {
+    filepath = process.env.FILE_PATH;
+}
 
 const extractFile = async (zipPath, dest) => {
 
@@ -107,9 +114,7 @@ const getDownloadURL = async (version) => {
         throw new Error(`Version ${version} and subsequent versions not found`);
     }
 }
-if (!global.versionsFolder) {
-    global.versionsFolder = process.env.SOFFICE_VERSIONS_PATH || __dirname;
-}
+
 
 (async () => {
     try {
