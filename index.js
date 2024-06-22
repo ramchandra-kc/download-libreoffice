@@ -77,6 +77,9 @@ const getDownloadURL = async (version) => {
     try {
         let [relevantVersions, versionsInfo] = await getStructuredJSON(version);
 
+        if (relevantVersions.length === 0) {
+            throw new Error('Version not found.')
+        }
         let correctAnswer = false;
         let answer;
         while (!correctAnswer) {
@@ -118,6 +121,7 @@ const getDownloadURL = async (version) => {
 
 (async () => {
     try {
+        console.log('Retrieving the download url.');
         let { downloadURL, selectedVersion } = await getDownloadURL(version);
         let versionDir = path.join(global.versionsFolder, selectedVersion);
         downloadedPath = path.join(versionDir, path.basename(downloadURL));

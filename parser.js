@@ -1,4 +1,3 @@
-const axios = require('axios');
 const cheerio = require('cheerio');
 const fs = require('fs');
 const path = require('path');
@@ -6,11 +5,6 @@ const os = require('os');
 const baseURL = 'https://downloadarchive.documentfoundation.org/libreoffice/old/';
 const relevantVersions = [];
 
-
-async function fetchHTML(url) {
-    const { data } = await axios.get(url);
-    return data;
-}
 
 function parseHTML(html) {
     const $ = cheerio.load(html);
@@ -112,10 +106,11 @@ function isApplicationUrl(url) {
 }
 
 async function buildJSON(url, version, result) {
-    const html = await fetchHTML(url);
-    const items = parseHTML(html);
+    console.log('Downloading ', url);
+    const response = await fetch(url);
+    const items = parseHTML(await response.text());
+    console.log('Downloaded ', url);
     result = result || {};
-
     for (const item of items) {
         let newUrl = url + item.href
         if (item.href.endsWith('/') && !item.href.startsWith('http') && item.name !== 'Parent Directory') {
@@ -150,6 +145,7 @@ async function getURLs(version) {
     // get existing information
     let versionInfoPath = path.join(global.versionsFolder, 'versionInfo.json');
     let versionInfo = {};
+    // console.log('Checking if it already exists.');
     if (fs.existsSync(versionInfoPath)) {
         versionInfo = JSON.parse(fs.readFileSync(versionInfoPath));
     }
