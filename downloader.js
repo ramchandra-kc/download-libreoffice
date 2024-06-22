@@ -67,6 +67,14 @@ function askQuestion(query) {
 const downloadFile = async function (downloadUrl, outputPath) {
     return new Promise(async (resolve, reject) => {
 
+        let downloadedFilePath = path.join(process.env.XDM_DOWNLOAD_PATH, path.basename(downloadUrl));
+        if (fs.existsSync(downloadedFilePath)) {
+            fs.copyFileSync(downloadedFilePath, path.join(outputPath, path.basename(downloadedFilePath)));
+            // fs.rmSync(downloadedFilePath);
+            resolve(path.join(outputPath, path.basename(downloadedFilePath)));
+            return;
+        }
+        
         let xdmPath;
         // Copy the string to the clipboard
         clipboardy.writeSync(downloadUrl);
@@ -83,13 +91,16 @@ const downloadFile = async function (downloadUrl, outputPath) {
                         await downloadUsingAxiosFile(downloadUrl, downloadFilePath);
                         console.log('File downloaded successfully!');
                         resolve(downloadFilePath);
+                        return;
                     } else {
                         console.log('Download cancelled.');
                         reject('Download cancelled.');
+                        return;
                     }
                 } catch (err) {
                     console.error('Failed to download file:', err);
                     reject(err);
+                    return;
                 }
 
             } else {
@@ -98,37 +109,35 @@ const downloadFile = async function (downloadUrl, outputPath) {
         } else {
             xdmPath = process.env.XDM_PATH;
         }
-        
-        // resolve(path.join(outputPath, path.basename(downloadUrl)));
-        // return;
 
         if (xdmPath) {
             open(xdmPath).then(() => {
                 console.log("Opening XDM, Please click plus(+) and Download.");
-                let interValId;
-                let downloadedFilePath = path.join(process.env.XDM_DOWNLOAD_PATH, path.basename(downloadUrl));
+                let intervalId;
                 function checkIfDownloaded() {
-
                     // start moving
                     if (fs.existsSync(downloadedFilePath)) {
-                        clearInterval(interValId);
+                        if (intervalId !== undefined)
+                            clearInterval(intervalId);
                         fs.copyFileSync(downloadedFilePath, path.join(outputPath, path.basename(downloadedFilePath)));
                         // fs.rmSync(downloadedFilePath);
                         resolve(path.join(outputPath, path.basename(downloadedFilePath)));
+                        return;
                     }
                 }
-                interValId = setInterval(checkIfDownloaded, 2000);
-
                 checkIfDownloaded();
+                intervalId = setInterval(checkIfDownloaded, 2000);
+
             }).catch(err => {
                 console.error("Failed to open XDM:", err);
                 reject(false);
+                return;
             });
         }
     });
 };
 
 module.exports = {
-    downloadFile : downloadFile,
-    askQuestion : askQuestion
+    downloadFile: downloadFile,
+    askQuestion: askQuestion
 }

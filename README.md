@@ -11,6 +11,12 @@ I have tested this with windows only and need to confirm this with Mac and Linux
 - Download fast
 - Open the file with specific version of soffice with command.
 
+## Please have `.env` file
+
+- XDM_PATH              // path of fast download manager executable.
+- XDM_DOWNLOAD_PATH     // place where the download manager downlands the file.    
+- SOFFICE_VERSIONS_PATH // place to download multiple versions of LibreOffice.
+
 ## Prerequisites  
 
 ### Xtreme Download Manager
@@ -47,3 +53,12 @@ The selected downloader is opened and you can download the file.
 Once it has been downloaded, (for portable it is extracted to provided value in env variable `SOFFICE_VERSIONS_PATH`, if not you will have to install it.)
 
 If a file is provided with -f , then the particular file will be opened with the respective version.
+
+## Usage
+index [options]
+ex (`node index.js -v 6.4.6 -f 'filepath'`)
+
+Options:
+  -v, --version <version>    Version of LibreOffice Portable to download
+  -f, --filepath <filepath>  Path to the file to open with LibreOffice
+  -h, --help                 display help for command

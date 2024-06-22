@@ -1,7 +1,6 @@
-const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
-const { exec, execSync } = require('child_process');
+const { exec } = require('child_process');
 const { Command } = require('commander');
 require('dotenv').config();
 const { getStructuredJSON } = require('./parser');
@@ -66,11 +65,6 @@ const runLibreOffice = (filePath) => {
         }
     });
 };
-
-const getSofficeVersion =  () => {
-    let response = execSync('soffice --version');
-
-} 
 
 const getDownloadURL = async (version) => {
     try {
