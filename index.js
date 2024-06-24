@@ -51,15 +51,18 @@ const installLibreOffice = async (zipPath) => {
 
 const openLibreOfficePortable = (extractPath, filePath) => {
     let sofficeCmd;
-    if (fs.existsSync(path.join(extractPath, 'LibreOfficePortable.exe'))) {
-        sofficeCmd = path.join(extractPath, 'LibreOfficePortable.exe') + ' ' + filePath;
+    let executablePath = path.join(extractPath, 'LibreOfficePortable.exe');
+    if (fs.existsSync(executablePath)) {
+        sofficeCmd = `"${executablePath}" "${filePath}"`;
+        console.log('Running ', sofficeCmd);
+        exec(sofficeCmd, (error) => {
+            if (error) {
+                console.error(`Error running LibreOffice: ${error.message}`);
+            }
+        });
+    } else {
+        console.log('The LibreOffice Executable could not be found, please check if it exists in ', executablePath );
     }
-    console.log('Running ', sofficeCmd);
-    exec(sofficeCmd, (error) => {
-        if (error) {
-            console.error(`Error running LibreOffice: ${error.message}`);
-        }
-    });
 }
 
 const runLibreOffice = (filePath) => {
@@ -153,9 +156,17 @@ const getDownloadURL = async (version) => {
                 // await installLibreOffice(downloadedPath);
                 return;
             }
-        } 
-        console.log(`Opening file ${filepath} with LibreOffice Portable ...`);
-        openLibreOfficePortable(versionDir, filepath);
+        }
+        if (filepath !== undefined) {
+            if (fs.existsSync(filepath)) {
+                console.log(`Opening file ${filepath} with LibreOffice Portable ...`);
+                openLibreOfficePortable(versionDir, filepath);
+            } else {
+                console.log('Provided file path is invalid, please confirm if it exists.');
+            }
+        } else {
+            console.log('You can find the version in ', downloadedPath);
+        }
     } catch (error) {
         console.error(`Error: ${error}`);
     }

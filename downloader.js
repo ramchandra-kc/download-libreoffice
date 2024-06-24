@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 const ProgressBar = require('progress');
+const axios = require('axios');
 
 let clipboardy;
 import('clipboardy').then((data) => {
@@ -20,7 +21,13 @@ async function downloadUsingFetchFile(url, outputPath) {
     const writer = fs.createWriteStream(outputPath);
 
     try {
-        const response = await fetch(url);
+        // const response = await fetch(url);
+
+        const response = await axios({
+            url,
+            method: 'GET',
+            responseType: 'stream'
+        });
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -37,8 +44,10 @@ async function downloadUsingFetchFile(url, outputPath) {
             total: parseInt(totalLength, 10)
         });
 
-        response.body.on('data', (chunk) => progressBar.tick(chunk.length));
-        response.body.pipe(writer);
+        // response.body.on('data', (chunk) => progressBar.tick(chunk.length));
+        // response.body.pipe(writer);
+
+        response.data.pipe(writer);
 
         return new Promise((resolve, reject) => {
             writer.on('finish', resolve);
