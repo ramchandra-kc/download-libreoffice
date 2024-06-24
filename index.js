@@ -79,17 +79,20 @@ const runLibreOffice = (filePath) => {
 const getDownloadURL = async (version) => {
     try {
         let [relevantVersions, versionsInfo] = await getStructuredJSON(version);
-
-        if (relevantVersions.length === 0) {
-            throw new Error('Version not found.')
-        }
+        
         let correctAnswer = false;
         let answer;
-        while (!correctAnswer) {
-            answer = await askQuestion('Please select a version to download:\n' + relevantVersions.map((v, index) => (index + 1) + '. ' + v + `${versionsInfo[v].portable === undefined ? '' : ' (has portable)'}`).join('\n') + '\n');
-            answer = Number(answer);
-            if (!isNaN(answer) && answer > 0 && answer <= relevantVersions.length) {
-                correctAnswer = true;
+        if (relevantVersions.length === 0) {
+            throw new Error('Version not found.')
+        } else if (version.split('.').length === 4 && relevantVersions.length === 1) {
+            answer = 1;
+        } else {
+            while (!correctAnswer) {
+                answer = await askQuestion('Please select a version to download:\n' + relevantVersions.map((v, index) => (index + 1) + '. ' + v + `${versionsInfo[v].portable === undefined ? '' : ' (has portable)'}`).join('\n') + '\n');
+                answer = Number(answer);
+                if (!isNaN(answer) && answer > 0 && answer <= relevantVersions.length) {
+                    correctAnswer = true;
+                }
             }
         }
         let downloadUrl;

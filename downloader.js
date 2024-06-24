@@ -7,11 +7,15 @@ const axios = require('axios');
 let clipboardy;
 import('clipboardy').then((data) => {
     clipboardy = data.default;
+}).catch((err) => {
+    console.log('Error occured while importing clipboardy.', err)
 });
 
 let open;
 import('open').then((data) => {
     open = data.default;
+}).catch((err) => {
+    console.log('Error occured while importing open.', err)
 });
 
 let default_dxm_Path = "C:/ProgramData/Microsoft/Windows/Start Menu/Programs/Xtreme Download Manager/Xtreme Download Manager.lnk"
@@ -72,17 +76,25 @@ function askQuestion(query) {
     }));
 }
 
+function sleep(ms) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  }
+
 const downloadFile = async function (downloadUrl, outputPath) {
     return new Promise(async (resolve, reject) => {
         let downloadedFilePath = path.join(process.env.XDM_DOWNLOAD_PATH, path.basename(downloadUrl));
         if (fs.existsSync(downloadedFilePath)) {
             fs.copyFileSync(downloadedFilePath, path.join(outputPath, path.basename(downloadedFilePath)));
-            // fs.rmSync(downloadedFilePath);
+            fs.rmSync(downloadedFilePath);
             resolve(path.join(outputPath, path.basename(downloadedFilePath)));
             return;
         }
 
         let xdmPath;
+        if (clipboardy === undefined || open === undefined)
+            await sleep(1500);
         // Copy the string to the clipboard
         clipboardy.writeSync(downloadUrl);
         console.log("Download URL copied to clipboard!");
