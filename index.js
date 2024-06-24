@@ -6,6 +6,13 @@ require('dotenv').config();
 const { getStructuredJSON } = require('./parser');
 const { askQuestion, downloadFile } = require('./downloader');
 
+let open;
+import('open').then((data) => {
+    open = data.default;
+}).catch((err) => {
+    console.log('Error occured while importing open.', err)
+});
+
 const program = new Command();
 
 program
@@ -40,9 +47,56 @@ const extractFile = async (zipPath, dest) => {
     });
 };
 
+const getSofficeVersion = async function() {
+    return new Promise((resolve, reject) => {
+
+        exec(`soffice --version`, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error executing soffice: ${error.message}`);
+                resolve();
+                return;
+            }
+        
+            if (stderr) {
+                console.error(`Error: ${stderr}`);
+                resolve();
+                return;
+            }
+            
+            const versionMatch = stdout.match(/(\d+\.\d+\.\d+\.\d+)/);
+    
+            if (versionMatch) {
+                let version = versionMatch[0];
+                console.log(`Current installed LibreOffice version: ${version}`);
+                version = stdout.split(' ').filter((e) => e.indexOf(version) === 0);
+                if (version.length > 0) {
+                    resolve(version[0]);
+                }
+            } else {
+                console.error('Version number not found in the output');
+                resolve();
+            }
+
+        });
+    });
+}
+
 // need to extend this feature
 const installLibreOffice = async (zipPath) => {
-    exec(zipPath, (error) => {
+    if (open === undefined) {
+        await global.sleep(1500);
+    }
+    open(zipPath, (error) => {
+        if (error) {
+            console.error(`Error running LibreOffice: ${error.message}`);
+        }
+    });
+}
+
+function openFileWithLibreOffice(executablePath, filepath) {
+    const sofficeCmd = `"${executablePath}" "${filepath}"`;
+    console.log('Running ', sofficeCmd);
+    exec(sofficeCmd, (error) => {
         if (error) {
             console.error(`Error running LibreOffice: ${error.message}`);
         }
@@ -51,18 +105,15 @@ const installLibreOffice = async (zipPath) => {
 
 const openLibreOfficePortable = (extractPath, filePath) => {
     let sofficeCmd;
-    let executablePath = path.join(extractPath, 'LibreOfficePortable.exe');
-    if (fs.existsSync(executablePath)) {
-        sofficeCmd = `"${executablePath}" "${filePath}"`;
-        console.log('Running ', sofficeCmd);
-        exec(sofficeCmd, (error) => {
-            if (error) {
-                console.error(`Error running LibreOffice: ${error.message}`);
-            }
-        });
+    let executablePath;
+    if (fs.existsSync(path.join(extractPath, 'LibreOfficePortable.exe'))) {
+        executablePath = path.join(extractPath, 'LibreOfficePortable.exe')
+    } else if (path.join(extractPath, 'LibreOfficePortablePrevious.exe')) {
+        executablePath = path.join(extractPath, 'LibreOfficePortablePrevious.exe');
     } else {
-        console.log('The LibreOffice Executable could not be found, please check if it exists in ', executablePath );
+        console.log('The LibreOffice Portable could not be found, please check if it exists in ', executablePath);
     }
+    openFileWithLibreOffice(executablePath, filePath);
 }
 
 const runLibreOffice = (filePath) => {
@@ -79,7 +130,7 @@ const runLibreOffice = (filePath) => {
 const getDownloadURL = async (version) => {
     try {
         let [relevantVersions, versionsInfo] = await getStructuredJSON(version);
-        
+
         let correctAnswer = false;
         let answer;
         if (relevantVersions.length === 0) {
@@ -107,7 +158,7 @@ const getDownloadURL = async (version) => {
             }
         } else {
             let loopIdx = 0;
-            while (Object.keys(versionInfo).length > 0 && loopIdx < 5) {
+            while ( typeof versionInfo === 'object' && loopIdx < 5) {
                 loopIdx++;
                 for (let key in versionInfo) {
                     versionInfo = versionInfo[key];
@@ -129,8 +180,14 @@ const getDownloadURL = async (version) => {
     try {
         console.log('Retrieving the download url.');
         let { downloadURL, selectedVersion } = await getDownloadURL(version);
+        let currentSofficeVersion = await getSofficeVersion();
+        if (currentSofficeVersion === selectedVersion) {
+            console.log('The soffice version is already installed.',)
+            openFileWithLibreOffice('soffice', filepath);
+            return;
+        } 
         let versionDir = path.join(global.versionsFolder, selectedVersion);
-        downloadedPath = path.join(versionDir, path.basename(downloadURL));
+        downloadedPath = path.join(global.versionsFolder, path.basename(downloadURL));
         if (fs.existsSync(versionDir)) {
             console.log(`Version ${selectedVersion} already exists. Skipping download and extraction.`);
         } else {
@@ -154,9 +211,9 @@ const getDownloadURL = async (version) => {
             } else {
 
                 // handle respectively for different os.
-
                 // check if current downloaded version is expected one.
-                // await installLibreOffice(downloadedPath);
+
+                await installLibreOffice(downloadedPath);
                 return;
             }
         }

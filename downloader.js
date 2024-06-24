@@ -76,7 +76,7 @@ function askQuestion(query) {
     }));
 }
 
-function sleep(ms) {
+global.sleep = function sleep(ms) {
     return new Promise((resolve) => {
       setTimeout(resolve, ms);
     });
